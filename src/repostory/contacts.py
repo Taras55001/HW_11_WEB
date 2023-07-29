@@ -64,15 +64,15 @@ async def search_contact(user_id: int,
     sq = select(Contact).filter_by(user_id=user_id)
     result = await db.execute(sq)
     query = result.scalars().all()
+    con_list = []
     if contact_name:
-        print(contact_name)
-        query = [contact for contact in query if contact_name.strip().lower() in contact.name.lower()]
+        con_list.append(contact for contact in query if contact_name.strip().lower() in contact.name.lower())
     elif surname:
-        query = [contact for contact in query if surname.strip().lower() in contact.surname.lower()]
+        con_list.append(contact for contact in query if surname.strip().lower() in contact.surname.lower())
     elif email:
-        query = [contact for contact in query if email.strip().lower() in contact.email.lower()]
+        con_list.append(contact for contact in query if email.strip().lower() in contact.email.lower())
 
-    return query[0] if query else None
+    return con_list[0] if len(con_list) else None
 
 
 async def upcoming_birthdays(user_id, db):
@@ -81,10 +81,10 @@ async def upcoming_birthdays(user_id, db):
     sq = select(Contact).filter(Contact.user_id == user_id)
     result = await db.execute(sq)
     list_bd_contacts = result.scalars().all()
-    hapy_contacts = []
+    happy_contacts = []
     for data in list_bd_contacts:
         ccy = data.birthday.replace(year=current_date.year)
         cfy = data.birthday.replace(year=future_birthday.year)
         if ccy >= current_date and cfy <= future_birthday:
-            hapy_contacts.append(data)
-    return hapy_contacts
+            happy_contacts.append(data)
+    return happy_contacts
