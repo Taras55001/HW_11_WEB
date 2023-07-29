@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
-
+from sqlalchemy import select, and_, func
 
 from src.database.models import Contact
 from src.schemas import ContactResponse
-
 
 
 async def get_contacts(limit: int, offset: int, db: AsyncSession):
@@ -59,19 +57,20 @@ async def remove_contact(contact_id: int, db: AsyncSession):
 
 
 async def search_contact(user_id: int,
-    contact_name: str,
-    surname: str,
-    email: str,
-    db: AsyncSession):
+                         contact_name: str,
+                         surname: str,
+                         email: str,
+                         db: AsyncSession):
     sq = select(Contact).filter_by(user_id=user_id)
     result = await db.execute(sq)
     query = result.scalars().all()
     if contact_name:
-        query = [contact for contact in query if contact.name == contact_name]
-    if surname:
-        query = [contact for contact in query if contact.surname == surname]
-    if email:
-        query = [contact for contact in query if contact.email == email]
+        print(contact_name)
+        query = [contact for contact in query if contact_name.strip().lower() in contact.name.lower()]
+    elif surname:
+        query = [contact for contact in query if surname.strip().lower() in contact.surname.lower()]
+    elif email:
+        query = [contact for contact in query if email.strip().lower() in contact.email.lower()]
 
     return query[0] if query else None
 
@@ -79,8 +78,13 @@ async def search_contact(user_id: int,
 async def upcoming_birthdays(user_id, db):
     current_date = datetime.now().date()
     future_birthday = current_date + timedelta(days=7)
-    sq = select(Contact).filter(
-        and_(Contact.user_id == user_id, Contact.birthday >= current_date, Contact.birthday <= future_birthday)
-    )
+    sq = select(Contact).filter(Contact.user_id == user_id)
     result = await db.execute(sq)
-    return result.scalars().all()
+    list_bd_contacts = result.scalars().all()
+    hapy_contacts = []
+    for data in list_bd_contacts:
+        ccy = data.birthday.replace(year=current_date.year)
+        cfy = data.birthday.replace(year=future_birthday.year)
+        if ccy >= current_date and cfy <= future_birthday:
+            hapy_contacts.append(data)
+    return hapy_contacts

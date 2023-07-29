@@ -61,7 +61,7 @@ async def get_contact(contact_id: int = Path(ge=1), db: AsyncSession = Depends(g
 @router.get("/search/{user_id}", response_model=ContactResponse)
 async def search_contact(
         user_id: int,
-        contact_name: str = Query('Anon', min_length=2),
+        contact_name: str = Query(None, min_length=2),
         surname: str = Query(None, min_length=2),
         email: str = Query(None),
         db: AsyncSession = Depends(get_db)

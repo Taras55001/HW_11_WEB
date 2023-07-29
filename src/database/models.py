@@ -21,7 +21,7 @@ class Contact(Base):
     birthday = mapped_column(Date, index=True)
     description: Mapped[str] = mapped_column(String(250), nullable=True)
     phone: Mapped[str] = mapped_column(String(16), unique=True, index=True)
-    email: Mapped[str] = mapped_column(String(150), unique=True, index=True)
+    email: Mapped[str] = mapped_column(String(150), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user = relationship(User, backref="contacts")
 
